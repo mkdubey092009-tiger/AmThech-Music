@@ -1,9 +1,27 @@
 {
-  "name": "Music — Offline Player",
-  "short_name": "Music",
+  "id": "/offline-music-player/",
+  "name": "Muse — Offline Music Player",
+  "short_name": "Muse",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#fa243c",
-  "description": "Apple Music-inspired 100% offline local music player with IndexedDB storage, ID3 metadata parsing, synced lyrics, and 5-band equalizer."
+  "description": "100% offline local music player with translucent glass UI, 5-band equalizer, synced lyrics, and playlists.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
+
