@@ -1,0 +1,9 @@
+{
+  "name": "Music — Offline Player",
+  "short_name": "Music",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#fa243c",
+  "description": "Apple Music-inspired 100% offline local music player with IndexedDB storage, ID3 metadata parsing, synced lyrics, and 5-band equalizer."
+}
