@@ -1,298 +1,606 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="arc">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#141414" />
   <title>Muse — Offline Music</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Hidden File & Folder Pickers -->
+  <!-- Hidden Pickers -->
   <input type="file" id="fileInput" accept="audio/*" multiple hidden />
   <input type="file" id="folderInput" webkitdirectory directory multiple hidden />
   <input type="file" id="lrcInput" accept=".lrc,.txt" hidden />
+  <input type="file" id="coverArtInput" accept="image/*" hidden />
 
-  <!-- Top App Header -->
-  <header class="app-header">
-    <div class="header-titles">
-      <h1 id="viewTitle">Listen Now</h1>
-      <p id="viewSubtitle">0 songs offline</p>
-    </div>
-    <div class="header-actions">
-      <button class="icon-pill-btn" id="themeToggleBtn" aria-label="Theme">☀️</button>
-      <button class="accent-pill-btn" id="importMenuBtn">+ Import</button>
-    </div>
-  </header>
+  <!-- Blurred Circular Album Art Backdrop -->
+  <div class="ambient-backdrop">
+    <div class="ambient-disc" id="ambientDisc"></div>
+  </div>
 
-  <!-- Sub-toolbar (Sort & Play/Shuffle) -->
-  <div class="sub-toolbar" id="subToolbar">
-    <select id="sortSelect" class="native-select" aria-label="Sort songs">
-      <option value="added">Recently Added</option>
-      <option value="title">Title (A–Z)</option>
-      <option value="artist">Artist (A–Z)</option>
-      <option value="album">Album (A–Z)</option>
-      <option value="plays">Most Played</option>
-    </select>
-    <div class="toolbar-btns">
-      <button class="secondary-chip-btn" id="playAllBtn">▶ Play</button>
-      <button class="secondary-chip-btn" id="shuffleAllBtn">🔀 Shuffle</button>
+  <!-- Main App Screen -->
+  <div class="app-screen" id="mainScreen">
+    <!-- Top Header -->
+    <header class="top-header">
+      <h1 class="app-title" id="headerBrandTitle">Muse</h1>
+      <div class="header-icons">
+        <button class="icon-btn" id="openSearchBtn" aria-label="Search">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="20" y1="20" x2="16.2" y2="16.2" />
+          </svg>
+        </button>
+        <button class="icon-btn" id="openSettingsBtn" aria-label="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Expandable Search Bar -->
+    <div class="search-bar-wrap" id="searchBarWrap" hidden>
+      <div class="search-input-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="20" y1="20" x2="16.2" y2="16.2" />
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search songs, artists, albums, folders..." />
+        <button class="icon-btn-sm" id="closeSearchBtn">✕</button>
+      </div>
+    </div>
+
+    <!-- Horizontal Category Pill Tabs -->
+    <nav class="pill-tabs" id="categoryTabs">
+      <button class="pill-tab active" data-tab="songs">Songs</button>
+      <button class="pill-tab" data-tab="playlists">Playlists</button>
+      <button class="pill-tab" data-tab="folders">Folders</button>
+      <button class="pill-tab" data-tab="albums">Albums</button>
+      <button class="pill-tab" data-tab="artists">Artists</button>
+    </nav>
+
+    <!-- Permission / Rescan Strip -->
+    <div class="permission-strip" id="permissionStrip" hidden>
+      <span id="permissionStripText">Allow folder access to auto-scan all songs</span>
+      <button class="mini-pill-cta" id="permissionStripBtn">Allow</button>
+    </div>
+
+    <!-- Sort & Quick Action Row -->
+    <div class="sort-action-bar" id="sortActionBar">
+      <button class="sort-toggle-btn" id="sortCycleBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3" />
+        </svg>
+        <span id="sortLabel">Name</span>
+      </button>
+      <div class="sort-right-icons">
+        <button class="icon-btn-sm" id="scanFolderQuickBtn" title="Scan Music Folder">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            <line x1="12" y1="11" x2="12" y2="17" />
+            <line x1="9" y1="14" x2="15" y2="14" />
+          </svg>
+        </button>
+        <button class="icon-btn-sm" id="shuffleAllBtn" title="Shuffle All">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 3 21 3 21 8" />
+            <line x1="4" y1="20" x2="21" y2="3" />
+            <polyline points="21 16 21 21 16 21" />
+            <line x1="15" y1="15" x2="21" y2="21" />
+            <line x1="4" y1="4" x2="9" y2="9" />
+          </svg>
+        </button>
+        <button class="icon-btn-sm" id="playAllBtn" title="Play All">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="15" y2="12" />
+            <line x1="3" y1="18" x2="15" y2="18" />
+            <polygon points="18 12 22 15 18 18 18 12" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Scrollable Content -->
+    <main class="content-list" id="contentArea"></main>
+
+    <!-- Bottom Docked Mini-Player -->
+    <div class="mini-player" id="miniPlayer">
+      <div class="mini-progress-bar">
+        <div class="mini-progress-fill" id="miniProgressFill"></div>
+      </div>
+      <div class="mini-inner">
+        <div class="mini-tap-area" id="openNowPlayingBtn">
+          <div class="mini-thumb">
+            <img id="miniCover" src="" alt="" hidden />
+            <div class="thumb-placeholder" id="miniCoverPlaceholder">♫</div>
+          </div>
+          <div class="mini-meta">
+            <div class="mini-title" id="miniTitle">Not Playing</div>
+            <div class="mini-artist" id="miniArtist">Unknown artist</div>
+          </div>
+        </div>
+        <div class="mini-controls">
+          <button class="icon-btn" id="miniPlayPauseBtn" aria-label="Play or Pause">
+            <svg id="miniPlayIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="6 4 20 12 6 20 6 4" />
+            </svg>
+            <svg id="miniPauseIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" hidden>
+              <rect x="6" y="4" width="4" height="16" />
+              <rect x="14" y="4" width="4" height="16" />
+            </svg>
+          </button>
+          <button class="icon-btn" id="miniQueueBtn" aria-label="Queue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="17" y2="6" />
+              <line x1="3" y1="12" x2="17" y2="12" />
+              <line x1="3" y1="18" x2="11" y2="18" />
+              <circle cx="17" cy="18" r="2.5" />
+              <path d="M19.5 18V11l2.5 1" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Main Scrollable View -->
-  <main class="main-scroll" id="contentArea"></main>
-
-  <!-- Floating Glass Mini-Player -->
-  <div class="mini-player" id="miniPlayer">
-    <div class="mini-progress-track">
-      <div class="mini-progress-fill" id="miniProgressFill"></div>
+  <!-- Full-Screen Now Playing View (Matches Screenshot 1) -->
+  <section class="now-playing-screen" id="nowPlayingScreen">
+    <div class="np-top-bar">
+      <button class="icon-btn" id="closeNowPlayingBtn" aria-label="Minimize">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <span class="np-speed-pill" id="npSpeedBadge" hidden>1.0x</span>
+      <button class="icon-btn" id="npMoreBtn" aria-label="Track Options">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="1.8" />
+          <circle cx="12" cy="12" r="1.8" />
+          <circle cx="12" cy="19" r="1.8" />
+        </svg>
+      </button>
     </div>
-    <div class="mini-player-row">
-      <div class="mini-track-tap" id="openFullscreenBtn">
-        <div class="mini-cover-box">
-          <img id="miniCover" src="" alt="" hidden />
-          <div class="mini-cover-fallback" id="miniCoverPlaceholder">♪</div>
+
+    <div class="np-center">
+      <!-- Double-tap Left / Right Album Cover -->
+      <div class="np-artwork-box" id="npArtworkBox">
+        <img id="npCover" src="" alt="" hidden />
+        <div class="np-artwork-placeholder" id="npCoverPlaceholder">
+          <svg width="88" height="88" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+          </svg>
         </div>
-        <div class="mini-meta">
-          <div class="mini-title" id="miniTitle">Not Playing</div>
-          <div class="mini-artist" id="miniArtist">Tap + Import to add songs</div>
+        <div class="seek-toast" id="seekToast" hidden>+10s</div>
+      </div>
+
+      <!-- Title, Artist & Heart -->
+      <div class="np-meta-row">
+        <div class="np-titles">
+          <h2 id="npTitle">Not Playing</h2>
+          <p id="npArtist">Unknown artist</p>
+        </div>
+        <button class="icon-btn np-heart-btn" id="npLikeBtn" aria-label="Like">
+          <svg id="npHeartOutline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <svg id="npHeartFilled" width="24" height="24" viewBox="0 0 24 24" fill="#fa243c" hidden>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Scrubber & Timestamps -->
+      <div class="np-scrubber-wrap">
+        <input type="range" id="npSeekSlider" class="arc-slider" min="0" max="100" value="0" step="0.1" />
+        <div class="np-time-labels">
+          <span id="npCurrentTime">00:00</span>
+          <span id="npDuration">00:00</span>
         </div>
       </div>
-      <div class="mini-controls">
-        <button class="mini-icon-btn" id="miniLikeBtn" aria-label="Like">♡</button>
-        <button class="mini-play-btn" id="miniPlayPauseBtn" aria-label="Play or Pause">
-          <svg id="miniPlayIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+
+      <!-- 5 Transport Buttons -->
+      <div class="np-controls">
+        <button class="icon-btn" id="npShuffleBtn" aria-label="Shuffle">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 3 21 3 21 8" />
+            <line x1="4" y1="20" x2="21" y2="3" />
+            <polyline points="21 16 21 21 16 21" />
+            <line x1="15" y1="15" x2="21" y2="21" />
+            <line x1="4" y1="4" x2="9" y2="9" />
+          </svg>
+        </button>
+        <button class="icon-btn" id="npPrevBtn" aria-label="Previous">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+          </svg>
+        </button>
+        <button class="np-play-btn" id="npPlayPauseBtn" aria-label="Play or Pause">
+          <svg id="npPlayIcon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="6 4 20 12 6 20 6 4" />
           </svg>
-          <svg id="miniPauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" hidden>
+          <svg id="npPauseIcon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" hidden>
             <rect x="6" y="4" width="4" height="16" />
             <rect x="14" y="4" width="4" height="16" />
           </svg>
         </button>
-        <button class="mini-icon-btn" id="miniNextBtn" aria-label="Next">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <button class="icon-btn" id="npNextBtn" aria-label="Next">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
           </svg>
         </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Native Android Bottom Tab Navigation -->
-  <nav class="bottom-nav" id="bottomNav">
-    <button class="tab-btn active" data-view="listen-now">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="10 8 16 12 10 16 10 8" />
-      </svg>
-      <span>Listen Now</span>
-    </button>
-    <button class="tab-btn" data-view="songs">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 18V5l12-2v13" />
-        <circle cx="6" cy="18" r="3" />
-        <circle cx="18" cy="16" r="3" />
-      </svg>
-      <span>Library</span>
-    </button>
-    <button class="tab-btn" data-view="search">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-      <span>Search</span>
-    </button>
-    <button class="tab-btn" data-view="playlists">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="8" y1="6" x2="21" y2="6" />
-        <line x1="8" y1="12" x2="21" y2="12" />
-        <line x1="8" y1="18" x2="21" y2="18" />
-        <line x1="3" y1="6" x2="3.01" y2="6" />
-        <line x1="3" y1="12" x2="3.01" y2="12" />
-        <line x1="3" y1="18" x2="3.01" y2="18" />
-      </svg>
-      <span>Playlists</span>
-    </button>
-  </nav>
-
-  <!-- Full-Screen Apple Music Now Playing Sheet -->
-  <div class="fullscreen-sheet" id="fullscreenPlayer">
-    <div class="fs-ambient-bg" id="fsAmbientBg"></div>
-
-    <div class="fs-top-bar">
-      <button class="fs-pill-close" id="closeFullscreenBtn" aria-label="Minimize">⌄</button>
-      <span class="fs-badge">NOW PLAYING</span>
-      <button class="fs-text-btn" id="fsEqBtn">EQ</button>
-    </div>
-
-    <div class="fs-body">
-      <div class="fs-art-frame" id="fsArtworkContainer">
-        <img id="fsCover" src="" alt="" hidden />
-        <div class="fs-art-fallback" id="fsCoverPlaceholder">♪</div>
-      </div>
-
-      <canvas id="visualizerCanvas" width="340" height="36"></canvas>
-
-      <div class="fs-meta-row">
-        <div class="fs-titles">
-          <h2 id="fsTitle">Not Playing</h2>
-          <p id="fsArtist">Select a song to start listening</p>
-        </div>
-        <button class="fs-like-btn" id="fsLikeBtn">♡</button>
-      </div>
-
-      <div class="fs-scrubber">
-        <input type="range" id="fsSeekSlider" class="native-slider" min="0" max="100" value="0" step="0.1" />
-        <div class="fs-time-row">
-          <span id="fsCurrentTime">0:00</span>
-          <span id="fsDuration">0:00</span>
-        </div>
-      </div>
-
-      <div class="fs-transport">
-        <button class="fs-sec-btn" id="fsShuffleBtn" aria-label="Shuffle">🔀</button>
-        <button class="fs-skip-btn" id="fsPrevBtn" aria-label="Previous">⏮</button>
-        <button class="fs-main-play" id="fsPlayPauseBtn" aria-label="Play or Pause">▶</button>
-        <button class="fs-skip-btn" id="fsNextBtn" aria-label="Next">⏭</button>
-        <button class="fs-sec-btn" id="fsRepeatBtn" aria-label="Repeat">
-          🔁<span class="repeat-dot" id="fsRepeatOneBadge" hidden>1</span>
+        <button class="icon-btn repeat-btn-wrap" id="npRepeatBtn" aria-label="Repeat">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="17 1 21 5 17 9" />
+            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+            <polyline points="7 23 3 19 7 15" />
+            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+          </svg>
+          <span class="repeat-one-tag" id="npRepeatOneBadge" hidden>1</span>
         </button>
       </div>
-
-      <!-- Bottom Tools Row inside Now Playing -->
-      <div class="fs-tools-row">
-        <button class="fs-tool-chip" id="fsSpeedBtn">1.0x</button>
-        <button class="fs-tool-chip" id="fsSleepBtn">⏱ Sleep</button>
-        <button class="fs-tool-chip" id="fsImportLrcBtn">+ .LRC</button>
-        <button class="fs-tool-chip" id="fsEditLyricsBtn">✎ Lyrics</button>
-      </div>
-
-      <!-- Synced Lyrics Area -->
-      <div class="fs-lyrics-box" id="fsLyricsContainer">
-        <p class="empty-lyrics-msg">No lyrics added yet. Tap <strong>+ .LRC</strong> or <strong>✎ Lyrics</strong> above.</p>
-      </div>
     </div>
-  </div>
 
-  <!-- Bottom Sheet: Import Audio / Folder -->
-  <div class="sheet-backdrop" id="importSheet" hidden>
-    <div class="bottom-sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
-        <h3>Add Offline Music</h3>
-        <button class="sheet-close" data-close-modal="importSheet">✕</button>
-      </div>
-      <div class="sheet-actions-list">
-        <button class="sheet-option-btn" id="pickFilesBtn">
-          <span class="opt-icon">🎵</span>
-          <div>
-            <strong>Select Audio Files</strong>
-            <small>MP3, FLAC, WAV, M4A, OGG</small>
+    <!-- Bottom 4 Utility Icons (Lyrics, EQ, Sleep Timer, Queue) -->
+    <div class="np-bottom-tools">
+      <button class="icon-btn" id="npLyricsBtn" aria-label="Lyrics">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="2.5" />
+          <line x1="14" y1="9" x2="14.01" y2="9" stroke-width="2.5" />
+        </svg>
+      </button>
+      <button class="icon-btn" id="npEqBtn" aria-label="Equalizer">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+          <line x1="4" y1="21" x2="4" y2="14" />
+          <line x1="4" y1="10" x2="4" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12" y2="3" />
+          <line x1="20" y1="21" x2="20" y2="16" />
+          <line x1="20" y1="12" x2="20" y2="3" />
+          <circle cx="4" cy="12" r="2" />
+          <circle cx="12" cy="10" r="2" />
+          <circle cx="20" cy="14" r="2" />
+        </svg>
+      </button>
+      <button class="icon-btn" id="npSleepBtn" aria-label="Sleep Timer">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+          <circle cx="12" cy="13" r="8" />
+          <polyline points="12 9 12 13 14.5 14.5" />
+          <line x1="9" y1="2" x2="15" y2="2" />
+        </svg>
+      </button>
+      <button class="icon-btn" id="npQueueBtn" aria-label="Up Next Queue">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+          <line x1="3" y1="6" x2="17" y2="6" />
+          <line x1="3" y1="12" x2="17" y2="12" />
+          <line x1="3" y1="18" x2="11" y2="18" />
+          <circle cx="17" cy="18" r="2.5" />
+          <path d="M19.5 18V11l2.5 1" />
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- Full Settings Screen (Matches Screenshot 4) -->
+  <section class="settings-screen" id="settingsScreen">
+    <header class="settings-header">
+      <button class="icon-btn" id="closeSettingsBtn" aria-label="Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+      </button>
+      <h2>Settings</h2>
+    </header>
+
+    <div class="settings-body">
+      <!-- Music Library & Auto-Scan -->
+      <div class="settings-card">
+        <button class="settings-row-btn" id="settingsGrantFolderBtn">
+          <div class="s-icon">📂</div>
+          <div class="s-text">
+            <strong>Scan music folder</strong>
+            <small id="settingsFolderStatus">Grant storage permission & auto-scan songs</small>
           </div>
         </button>
-        <button class="sheet-option-btn" id="pickFolderBtn">
-          <span class="opt-icon">📁</span>
-          <div>
-            <strong>Import Entire Music Folder</strong>
-            <small>Scan and save all songs in a folder</small>
+        <button class="settings-row-btn" id="settingsPickFilesBtn">
+          <div class="s-icon">🎵</div>
+          <div class="s-text">
+            <strong>Import audio files</strong>
+            <small>Add individual MP3, FLAC, WAV, or M4A tracks</small>
           </div>
         </button>
       </div>
+
+      <!-- Theme Customization -->
+      <div class="settings-card">
+        <button class="settings-row-btn" id="settingsThemeBtn">
+          <div class="s-icon">👕</div>
+          <div class="s-text">
+            <strong>Theme</strong>
+            <small id="settingsThemeLabel">Arc Dark</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Filter Audio & Hidden Files -->
+      <div class="settings-card">
+        <button class="settings-row-btn" id="settingsFilterAudioBtn">
+          <div class="s-icon">⏳</div>
+          <div class="s-text">
+            <strong>Filter audio</strong>
+            <small id="settingsFilterLabel">&lt; 5s</small>
+          </div>
+        </button>
+        <button class="settings-row-btn" id="settingsHiddenFilesBtn">
+          <div class="s-icon">🙈</div>
+          <div class="s-text">
+            <strong>Hidden files</strong>
+            <small id="settingsHiddenCount">Manage hidden files and folders (0)</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Playback Features Card -->
+      <div class="settings-card">
+        <div class="settings-row-static">
+          <div class="s-icon">📶</div>
+          <div class="s-text">
+            <strong>Crossfade</strong>
+            <small>Fade smoothly between songs</small>
+          </div>
+          <label class="arc-switch">
+            <input type="checkbox" id="crossfadeToggle" />
+            <span class="arc-slider-track"></span>
+          </label>
+        </div>
+        <div class="settings-sub-slider" id="crossfadeSliderRow">
+          <span id="crossfadeSecLabel">10s</span>
+          <input type="range" id="crossfadeRange" class="arc-slider" min="1" max="12" value="10" />
+        </div>
+
+        <div class="settings-row-static">
+          <div class="s-icon">〰️</div>
+          <div class="s-text">
+            <strong>Gapless playback</strong>
+            <small>Remove gaps between songs</small>
+          </div>
+          <label class="arc-switch">
+            <input type="checkbox" id="gaplessToggle" checked />
+            <span class="arc-slider-track"></span>
+          </label>
+        </div>
+
+        <button class="settings-row-btn" id="settingsSeekStepBtn">
+          <div class="s-icon">⏩</div>
+          <div class="s-text">
+            <strong>Fast forward and rewind time</strong>
+            <small>Double-tap album cover sides to fast forward or rewind (<span id="seekStepLabel">10s</span>)</small>
+          </div>
+        </button>
+
+        <div class="settings-row-static">
+          <div class="s-icon">⏯️</div>
+          <div class="s-text">
+            <strong>Resume playback</strong>
+            <small>For audio longer than 10 minutes</small>
+          </div>
+          <label class="arc-switch">
+            <input type="checkbox" id="resumeLongToggle" checked />
+            <span class="arc-slider-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <p class="settings-version">Version: 1.2.1</p>
+    </div>
+  </section>
+
+  <!-- Track Options Bottom Sheet (Matches Screenshot 3) -->
+  <div class="sheet-backdrop" id="trackMenuSheet" hidden>
+    <div class="bottom-sheet track-options-sheet">
+      <div class="sheet-track-header">
+        <div class="mini-thumb">
+          <img id="menuTrackCover" src="" alt="" hidden />
+          <div class="thumb-placeholder" id="menuTrackPlaceholder">♫</div>
+        </div>
+        <div class="mini-meta">
+          <div class="mini-title" id="menuTrackTitle">Song Title</div>
+          <div class="mini-artist" id="menuTrackSub">Unknown artist · Music</div>
+        </div>
+      </div>
+
+      <div class="sheet-menu-list">
+        <button class="menu-action-row" data-track-action="playlist">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          <span>Add to playlist</span>
+        </button>
+        <button class="menu-action-row" data-track-action="album">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>
+          <span>Go to album</span>
+        </button>
+        <button class="menu-action-row" data-track-action="artist">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="10" cy="7" r="4"/><path d="M3 20v-2a5 5 0 0 1 9-3"/><path d="M18 14v5a2 2 0 1 1-2-2"/></svg>
+          <span>Go to artist</span>
+        </button>
+        <button class="menu-action-row" data-track-action="tags">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <span>Edit tags</span>
+        </button>
+        <button class="menu-action-row" data-track-action="hide">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M1 1l22 22"/></svg>
+          <span>Hide</span>
+        </button>
+        <button class="menu-action-row" data-track-action="share">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>Share</span>
+        </button>
+        <button class="menu-action-row" data-track-action="speed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+          <span style="flex:1">Speed</span>
+          <small class="menu-right-val" id="menuSpeedVal">1x</small>
+        </button>
+        <button class="menu-action-row" data-track-action="ringtone">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Set as ringtone</span>
+        </button>
+        <button class="menu-action-row" data-track-action="properties">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Properties</span>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Bottom Sheet: Create Playlist -->
-  <div class="sheet-backdrop" id="createPlaylistModal" hidden>
+  <!-- Edit Tags Bottom Sheet -->
+  <div class="sheet-backdrop" id="editTagsSheet" hidden>
     <div class="bottom-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3>New Playlist</h3>
-        <button class="sheet-close" data-close-modal="createPlaylistModal">✕</button>
+        <h3>Edit tags</h3>
+        <button class="icon-btn-sm" data-close-sheet="editTagsSheet">✕</button>
       </div>
-      <input type="text" id="newPlaylistNameInput" class="native-input" placeholder="Enter playlist name..." />
+      <div class="form-stack">
+        <button class="secondary-btn" id="pickTagCoverBtn">🖼️ Change Cover Artwork</button>
+        <input type="text" id="tagTitleInput" class="dark-input" placeholder="Song Title" />
+        <input type="text" id="tagArtistInput" class="dark-input" placeholder="Artist Name" />
+        <input type="text" id="tagAlbumInput" class="dark-input" placeholder="Album Name" />
+      </div>
       <div class="sheet-footer">
-        <button class="secondary-chip-btn" data-close-modal="createPlaylistModal">Cancel</button>
-        <button class="accent-pill-btn" id="confirmCreatePlaylistBtn">Create</button>
+        <button class="secondary-btn" data-close-sheet="editTagsSheet">Cancel</button>
+        <button class="primary-btn" id="saveTagsBtn">Save</button>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Sheet: Add Song to Playlist -->
-  <div class="sheet-backdrop" id="playlistModal" hidden>
+  <!-- Properties Bottom Sheet -->
+  <div class="sheet-backdrop" id="propertiesSheet" hidden>
     <div class="bottom-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3>Add to Playlist</h3>
-        <button class="sheet-close" data-close-modal="playlistModal">✕</button>
+        <h3>Properties</h3>
+        <button class="icon-btn-sm" data-close-sheet="propertiesSheet">✕</button>
       </div>
-      <div id="modalPlaylistOptions" class="sheet-actions-list"></div>
+      <div id="propertiesContent" class="props-table"></div>
     </div>
   </div>
 
-  <!-- Bottom Sheet: 5-Band Equalizer -->
-  <div class="sheet-backdrop" id="eqModal" hidden>
+  <!-- Add to Playlist / Create Playlist Sheet -->
+  <div class="sheet-backdrop" id="playlistSheet" hidden>
     <div class="bottom-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3>5-Band Equalizer</h3>
-        <button class="sheet-close" data-close-modal="eqModal">✕</button>
+        <h3>Add to playlist</h3>
+        <button class="icon-btn-sm" data-close-sheet="playlistSheet">✕</button>
       </div>
-      <div class="eq-presets">
-        <button class="preset-chip active" data-preset="flat">Flat</button>
-        <button class="preset-chip" data-preset="bass">Bass Boost</button>
-        <button class="preset-chip" data-preset="vocal">Vocal</button>
-        <button class="preset-chip" data-preset="pop">Pop</button>
-        <button class="preset-chip" data-preset="electronic">Electronic</button>
+      <div class="inline-create-row">
+        <input type="text" id="newPlaylistInput" class="dark-input" placeholder="New playlist name..." />
+        <button class="primary-btn" id="createPlaylistBtn">Create</button>
       </div>
-      <div class="eq-sliders">
-        <div class="eq-band"><input type="range" class="eq-range" data-band="0" min="-12" max="12" value="0" /><span>60Hz</span></div>
-        <div class="eq-band"><input type="range" class="eq-range" data-band="1" min="-12" max="12" value="0" /><span>230Hz</span></div>
-        <div class="eq-band"><input type="range" class="eq-range" data-band="2" min="-12" max="12" value="0" /><span>910Hz</span></div>
-        <div class="eq-band"><input type="range" class="eq-range" data-band="3" min="-12" max="12" value="0" /><span>3.6kHz</span></div>
-        <div class="eq-band"><input type="range" class="eq-range" data-band="4" min="-12" max="12" value="0" /><span>14kHz</span></div>
-      </div>
+      <div id="playlistOptionsList" class="sheet-menu-list"></div>
     </div>
   </div>
 
-  <!-- Bottom Sheet: Sleep Timer -->
-  <div class="sheet-backdrop" id="sleepModal" hidden>
-    <div class="bottom-sheet">
+  <!-- Lyrics Bottom Sheet -->
+  <div class="sheet-backdrop" id="lyricsSheet" hidden>
+    <div class="bottom-sheet tall-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3>Sleep Timer</h3>
-        <button class="sheet-close" data-close-modal="sleepModal">✕</button>
+        <h3>Lyrics</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="secondary-btn" id="importLrcBtn">+ .LRC</button>
+          <button class="secondary-btn" id="toggleEditLyricsBtn">Edit</button>
+          <button class="icon-btn-sm" data-close-sheet="lyricsSheet">✕</button>
+        </div>
       </div>
-      <div class="sleep-grid">
-        <button class="secondary-chip-btn" data-sleep="0">Off</button>
-        <button class="secondary-chip-btn" data-sleep="15">15 Min</button>
-        <button class="secondary-chip-btn" data-sleep="30">30 Min</button>
-        <button class="secondary-chip-btn" data-sleep="45">45 Min</button>
-        <button class="secondary-chip-btn" data-sleep="60">1 Hour</button>
+      <div id="lyricsViewBox" class="lyrics-scroll-box"></div>
+      <div id="lyricsEditBox" hidden>
+        <textarea id="lyricsTextarea" rows="8" placeholder="[00:12.50] Paste synced .LRC lyrics or plain text..."></textarea>
+        <div class="sheet-footer">
+          <button class="primary-btn" id="saveLyricsBtn">Save Lyrics</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Sheet: Lyrics Editor -->
-  <div class="sheet-backdrop" id="lyricsModal" hidden>
+  <!-- 5-Band Equalizer Sheet -->
+  <div class="sheet-backdrop" id="eqSheet" hidden>
     <div class="bottom-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3>Edit Lyrics (.LRC or Plain)</h3>
-        <button class="sheet-close" data-close-modal="lyricsModal">✕</button>
+        <h3>Equalizer</h3>
+        <button class="icon-btn-sm" data-close-sheet="eqSheet">✕</button>
       </div>
-      <textarea id="lyricsTextarea" rows="8" placeholder="[00:12.50] Paste synced lyrics or plain text..."></textarea>
-      <div class="sheet-footer">
-        <button class="secondary-chip-btn" data-close-modal="lyricsModal">Cancel</button>
-        <button class="accent-pill-btn" id="saveLyricsBtn">Save</button>
+      <div class="preset-row">
+        <button class="preset-pill active" data-preset="flat">Flat</button>
+        <button class="preset-pill" data-preset="bass">Bass Boost</button>
+        <button class="preset-pill" data-preset="vocal">Vocal</button>
+        <button class="preset-pill" data-preset="pop">Pop</button>
+        <button class="preset-pill" data-preset="electronic">Electronic</button>
+      </div>
+      <div class="eq-bands">
+        <div class="eq-col"><input type="range" class="eq-range" data-band="0" min="-12" max="12" value="0" /><span>60Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-range" data-band="1" min="-12" max="12" value="0" /><span>230Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-range" data-band="2" min="-12" max="12" value="0" /><span>910Hz</span></div>
+        <div class="eq-col"><input type="range" class="eq-range" data-band="3" min="-12" max="12" value="0" /><span>3.6kHz</span></div>
+        <div class="eq-col"><input type="range" class="eq-range" data-band="4" min="-12" max="12" value="0" /><span>14kHz</span></div>
       </div>
     </div>
   </div>
+
+  <!-- Sleep Timer Sheet -->
+  <div class="sheet-backdrop" id="sleepSheet" hidden>
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 id="sleepSheetTitle">Sleep timer</h3>
+        <button class="icon-btn-sm" data-close-sheet="sleepSheet">✕</button>
+      </div>
+      <div class="chip-grid">
+        <button class="secondary-btn" data-sleep="0">Off</button>
+        <button class="secondary-btn" data-sleep="15">15 min</button>
+        <button class="secondary-btn" data-sleep="30">30 min</button>
+        <button class="secondary-btn" data-sleep="45">45 min</button>
+        <button class="secondary-btn" data-sleep="60">60 min</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Up Next Queue Sheet -->
+  <div class="sheet-backdrop" id="queueSheet" hidden>
+    <div class="bottom-sheet tall-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3>Up Next (<span id="queueCountLabel">0</span>)</h3>
+        <button class="icon-btn-sm" data-close-sheet="queueSheet">✕</button>
+      </div>
+      <div id="queueListBox" class="queue-scroll-box"></div>
+    </div>
+  </div>
+
+  <!-- Hidden Files Manager Sheet -->
+  <div class="sheet-backdrop" id="hiddenFilesSheet" hidden>
+    <div class="bottom-sheet tall-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3>Hidden files</h3>
+        <button class="icon-btn-sm" data-close-sheet="hiddenFilesSheet">✕</button>
+      </div>
+      <div id="hiddenFilesListBox" class="queue-scroll-box"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-pill" id="toastPill" hidden></div>
 
   <audio id="audioPlayer" crossorigin="anonymous"></audio>
+  <audio id="crossfadePlayer" crossorigin="anonymous"></audio>
   <script src="app.js"></script>
 </body>
 </html>
